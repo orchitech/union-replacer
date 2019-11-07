@@ -47,4 +47,4 @@ while ((m = docBlockRe.exec(readme)) !== null) {
   }
 }
 
-console.log(`Evaluated ${total} assertions, passed: ${passed}, failed: ${failed}.`);
+console.log(`Passed ${passed} of ${total} tests.`);

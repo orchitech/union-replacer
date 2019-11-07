@@ -43,7 +43,7 @@ Output:
 &lt;script&gt;alert(&quot;inject &amp; control&quot;)&lt;/script&gt;
 ```
 
-### Simple markdown highlighter
+### Simple Markdown highlighter
 
 Highlighting Markdown special characters while preserving code blocks and spans.
 Only a subset of Markdown syntax is supported for simplicity.
@@ -73,7 +73,7 @@ const mdHighlighter = new UnionReplacer([
   [/\n/, '<br />\n']
 ].concat(htmlEscapes));
 
-const tobeMarkdownHighlighted = '\
+const toBeMarkdownHighlighted = '\
 **Markdown** code to be "highlighted"\n\
 with special care to fenced code blocks:\n\
 ````\n\
@@ -84,7 +84,7 @@ Even embedded "fence strings" work well with **UnionEscaper**\n\
 ````\n\
 *CommonMark is sweet & cool.*';
 
-console.log(mdHighlighter.replace(tobeMarkdownHighlighted));
+console.log(mdHighlighter.replace(toBeMarkdownHighlighted));
 ~~~
 Produces:
 ~~~
