@@ -1,7 +1,7 @@
 class UnionReplacerRule {
   constructor(pattern, replacement) {
     if (pattern.constructor !== RegExp) {
-      throw new TypeError(`Replacement pattern ${pattern} is not a RegExp.`)
+      throw new TypeError(`Replacement pattern ${pattern} is not a RegExp.`);
     }
     this.pattern = pattern;
     if (typeof replacement === 'function') {
@@ -22,16 +22,15 @@ class UnionReplacerRule {
           captureCount++;
         } else if (backref) {
           if (+backref > captureCount) {
-            throw new SyntaxError(`Octal or backreference to undefined capture group ${backref} in ${pattern}`)
+            throw new SyntaxError(`Octal or backreference to undefined capture group ${backref} in ${this.pattern}`);
           }
           // renumber backreference
-          return `\\${+backref + captureNum}` 
+          return `\\${+backref + captureNum}`;
         }
         return match;
-      }
-    );
+      });
     this.captureNum = captureNum;
-    this.capturePatternStr = `(${patternStr})`
+    this.capturePatternStr = `(${patternStr})`;
     this.captureCount = captureCount + 1;
   }
 
@@ -60,20 +59,19 @@ class UnionReplacerRule {
           return namedCaptures[namedCapture];
         }
         return m;
-      }
-    );
+      });
   }
 }
 
-const unionReplacerCountCaptureGroups = rules =>
-  rules.reduce((num, rule) => num + rule.captureCount, 0);
+const unionReplacerCountCaptureGroups = (rules) => rules.reduce((num, rule) => num
+  + rule.captureCount, 0);
 
 class UnionReplacer {
   constructor(replaces) {
     this.rules = [];
     this.compiled = false;
     if (replaces) {
-      replaces.forEach(replace => this.addReplacement(replace[0], replace[1]));
+      replaces.forEach((replace) => this.addReplacement(replace[0], replace[1]));
     }
   }
 
@@ -81,14 +79,14 @@ class UnionReplacer {
     if (this.compiled) {
       throw new Error('Dynamic rule changes not yet supported.');
     }
-    let rule = new UnionReplacerRule(pattern, replacement);
+    const rule = new UnionReplacerRule(pattern, replacement);
     rule.compile(unionReplacerCountCaptureGroups(this.rules) + 1);
-    this.rules.push(rule)
+    this.rules.push(rule);
   }
 
   compile() {
     this.totalCaptureGroups = unionReplacerCountCaptureGroups(this.rules);
-    const regexpStr = this.rules.map(rule => rule.capturePatternStr).join('|');
+    const regexpStr = this.rules.map((rule) => rule.capturePatternStr).join('|');
     this.regexp = new RegExp(regexpStr, 'gm');
     this.compiled = true;
   }
@@ -98,13 +96,13 @@ class UnionReplacer {
       this.compile();
     }
     return string.replace(this.regexp, (...args) => {
-      const rule = this.rules.find(rule => typeof args[rule.captureNum] !== 'undefined');
+      const rule = this.rules.find((item) => typeof args[item.captureNum] !== 'undefined');
       const newargs = args
         .slice(rule.captureNum, rule.captureNum + rule.captureCount)
         .concat(args.slice(1 + this.totalCaptureGroups));
-      return rule.replacementFn(...newargs)
+      return rule.replacementFn(...newargs);
     });
   }
 }
 
-module.exports = UnionReplacer;
+export default UnionReplacer;
