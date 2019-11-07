@@ -1,0 +1,31 @@
+{
+  "name": "union-replacer",
+  "version": "0.0.9",
+  "description": "One-pass String.prototype.replace-like processor with multiple regexps and replacements",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/union-replacer-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orchitech/union-replacer.git"
+  },
+  "devDependencies": {
+    "standard": "^14.0.0",
+    "diff": "^4.0.0",
+    "colors": "^1.4.0"
+  },
+  "keywords": [
+    "keywords:",
+    "regexp",
+    "replace",
+    "union",
+    "alternation"
+  ],
+  "author": "Martin Cizek <martin.cizek@orchitech.cz>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/orchitech/union-replacer/issues"
+  },
+  "homepage": "https://github.com/orchitech/union-replacer#readme"
+}
