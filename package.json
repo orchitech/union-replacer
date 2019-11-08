@@ -6,8 +6,12 @@
   "module": "dist/union-replacer.esm.js",
   "browser": "dist/union-replacer.umd.js",
   "scripts": {
+    "lint": "eslint .",
+    "prebuild": "npm run lint",
     "build": "rollup -c",
-    "test": "node test/union-replacer-test.js && node test/readme-test.js"
+    "pretest": "npm run build",
+    "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json",
+    "prepublish": "npm test"
   },
   "repository": {
     "type": "git",
@@ -18,6 +22,7 @@
     "diff": "^4.0.0",
     "eslint": "^6.6.0",
     "eslint-config-airbnb-base": "^14.0.0",
+    "jasmine": "^3.5.0",
     "rollup": "^1.26.3",
     "rollup-plugin-babel": "^4.3.3",
     "standard": "^14.0.0"
