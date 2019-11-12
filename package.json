@@ -18,11 +18,13 @@
     "url": "git+https://github.com/orchitech/union-replacer.git"
   },
   "devDependencies": {
+    "cmark-gfm": "^0.6.0",
     "colors": "^1.4.0",
     "diff": "^4.0.0",
     "eslint": "^6.6.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "jasmine": "^3.5.0",
+    "jsdom": "^15.2.1",
     "rollup": "^1.26.3",
     "rollup-plugin-babel": "^4.3.3",
     "standard": "^14.0.0"
