@@ -1,25 +1,43 @@
 {
   "name": "union-replacer",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "description": "One-pass String.prototype.replace-like processor with multiple regexps and replacements",
-  "main": "index.js",
+  "main": "dist/union-replacer.cjs.js",
+  "module": "dist/union-replacer.esm.js",
+  "browser": "dist/union-replacer.umd.js",
   "scripts": {
-    "test": "node test/union-replacer-test.js && node test/readme-test.js"
+    "lint": "eslint .",
+    "prebuild": "npm run lint",
+    "build": "rollup -c",
+    "pretest": "npm run build",
+    "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json",
+    "prepublish": "npm test"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/orchitech/union-replacer.git"
   },
   "devDependencies": {
-    "standard": "^14.0.0",
+    "@babel/core": "^7.7.2",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.7.1",
+    "colors": "^1.4.0",
     "diff": "^4.0.0",
-    "colors": "^1.4.0"
+    "eslint": "^6.6.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "jasmine": "^3.5.0",
+    "rollup": "^1.26.3",
+    "rollup-plugin-babel": "^4.3.3",
+    "standard": "^14.0.0"
   },
   "keywords": [
     "regexp",
     "replace",
     "union",
     "alternation"
+  ],
+  "files": [
+    "dist"
   ],
   "author": "Martin Cizek <martin.cizek@orchitech.cz>",
   "license": "MIT",
