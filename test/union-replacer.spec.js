@@ -61,14 +61,14 @@ const FAILS = [
 
 describe('UnionReplacer.js', () => {
   CASES.forEach((value) => {
-    it(`Case '${value[0]}'`, () => {
+    it(`should produce '${value[1]}' for '${value[0]}'`, () => {
       const replacer = new UnionReplacer(RULES);
       expect(replacer.replace(value[0])).toBe(value[1]);
     });
   });
 
   FAILS.forEach((value) => {
-    it(`Fail '${value}'`, () => {
+    it(`should fail for '${value}'`, () => {
       expect(() => {
         const replacer = new UnionReplacer(value);
         replacer.replace('');

@@ -3,6 +3,7 @@
     "jasmine": true
   },
   "rules": {
-    "import/no-unresolved": "off"
+    "import/no-unresolved": "off",
+    "no-cond-assign": ["error", "except-parens"]
   }
 }
