@@ -3,7 +3,7 @@ const jasmineDiff = require('jasmine-diff');
 const UnionReplacer = require('../dist/union-replacer.cjs');
 
 const cleanupFencedCodeBlockContents = (contents, indent) => {
-  let code = contents.trim().replace(/\r?\n/, '\n');
+  let code = contents.trim();
   if (indent.length > 0) {
     code = code.replace(new RegExp(`^ {1,${indent.length}}`, 'gm'), '');
   }

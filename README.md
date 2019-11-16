@@ -6,12 +6,29 @@ Otherwise the behavior matches `String.prototype.replace(regexp, newSubstr|funct
 
 ## Outline
 
+### Installation and usage
+
+In browsers:
+```html
+<script src="https://unpkg.com/union-replacer/dist/union-replacer.umd.js" />
+```
+
+Using [npm](https://www.npmjs.com/):
+```bash
+npm install union-replacer
+```
+
+In [Node.js](http://nodejs.org/):
+```js
+const UnionReplacer = require('union-replacer');
+```
+
 ### Synopsis
 
 ```
-new UnionReplacer([replace_pairs])
+replacer = new UnionReplacer([replace_pairs])
 replacer.addReplacement(regexp, newSubstr|function)
-var newStr = replacer.replace(str)
+newStr = replacer.replace(str)
 ```
 
 ### Parameters
@@ -26,7 +43,6 @@ var newStr = replacer.replace(str)
 
 ### Convenient one-pass escaping of HTML special chars
 ```js
-UnionReplacer = require("../src/UnionReplacer")
 const htmlEscapes = [
   [/</, '&lt;'],
   [/>/, '&gt;'],
