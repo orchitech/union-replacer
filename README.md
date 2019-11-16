@@ -1,6 +1,7 @@
 # UnionReplacer
 
-UnionReplacer provides global search and replace functionality using multiple regular expressions and corresponging replacements.
+UnionReplacer provides one-pass global search and replace functionality
+using multiple regular expressions and corresponging replacements.
 Otherwise the behavior matches `String.prototype.replace(regexp, newSubstr|function)`.
 
 ## Outline
@@ -71,6 +72,8 @@ const mdHighlighter = new UnionReplacer([
   // Subsequent replaces are performed only outside code blocks and spans.
   [/[*~=+_-`]+/, '<b>$&</b>'],
   [/\n/, '<br />\n']
+
+// HTML entity-like strings would be interpreted too
 ].concat(htmlEscapes));
 
 const toBeMarkdownHighlighted = '\
@@ -133,19 +136,17 @@ const mdEscaper = new UnionReplacer([
 ]);
 
 const toBeMarkdownEscaped = '\
-A *starred* escaper:\n\
-1. Would locate _underscored_ at http://example.com/_underscored_/ space.\n\
-2. Would not even try at http://example.com/\\_underscored\\_/ space.\n\
-3. Would not compromise typography with URLs, see https://lorem-ipsum.org. No need for `<space>.`';
+A five-*starred* escaper:\n\
+1. Would preserve _underscored_ in the http://example.com/_underscored_/ URL.\n\
+2. Would also preserve backspaces (\\) in http://example.com/\\_underscored\\_/.';
 
 console.log(mdEscaper.replace(toBeMarkdownEscaped));
 ```
 Produces:
 ```
-A \*starred\* escaper:
-1\.  Would locate \_underscored\_ at http://example.com/_underscored_/ space.
-2\.  Would not even try at http://example.com/\_underscored\_/ space.
-3\.  Would not compromise typography with URLs, see https://lorem-ipsum.org. No need for \`\<space\>.\`
+A five-\*starred\* escaper:
+1\.  Would preserve \_underscored\_ in the http://example.com/_underscored_/ URL.
+2\.  Would also preserve backspaces (\\) in http://example.com/\_underscored\_/.
 ```
 
 ## Background
@@ -173,17 +174,20 @@ When text processing with several patterns is required, there are two approaches
    no intermediate steps affect the processing. E.g.:
    ```js
    // No UnionEscaper
-   'a "tricky" task'.replace(/"/g, '&quot;').replace(/&/g, '&amp;')
-   // 'a &amp;quot;tricky&amp;quot; task'
+   return 'a "tricky" task'
+     .replace(/"/g, '&quot;')
+     .replace(/&/g, '&amp;')
+   // desired: 'a &quot;tricky&quot; task'
+   // actual: 'a &amp;quot;tricky&amp;quot; task'
    ```
    So _'a "tricky" task'_ became _'a &amp;quot;tricky&amp;quot; task'_. This
    particular task is manageable with carefuly choosing the processing order.
    But when the processing is context-dependent, iterative processing becomes
    impossible.
 2. One-pass processing using regexp with alternations, which is correct, but
-   it might easily become overly complex, hard-to read and hard to manage. As
+   it might easily become overly complex, hard to read and hard to manage. As
    one can see, the result seems pretty static and very fragile in terms of
-   keeping track of all the individual capture groups.
+   keeping track of all the individual capture groups:
    ```js
    // No UnionEscaper
    const mdHighlightRe = /(^(`{3,}).*\n([\s\S]*?)(^\2`*\s*?$|\Z))|((^|[^`])(`+)(?!`)(.*?[^`]\7)(?!`))|([*~=+_-`]+)|(\n)|(<)|(>)|(")|(&)/gm
@@ -255,17 +259,13 @@ replacer2.replace(text); // (FOO)(nonfoo)(FOO)(nonfoo)
 
 Most important, the code is compact, slightly over 100 lines.
 
-In runtime, `UnionReplacer` performs one-pass processing mainky driven by
+In runtime, `UnionReplacer` performs one-pass processing driven by
 a single native regexp.
 The replacements are always done as an arrow function internally, even for
 string replacements. The eventual performance impact of this would be
 engine-dependent.
 
-Benchmarks should come soon.
-
-## Usage examples
-
-The `UnionReplacer` class needs to be initialized with an array of search and replace patterns. Then you can call the `replace` function, providing the string as an argument.
+Feel free to benchmark the library and please share the results.
 
 ## Limitations
 
