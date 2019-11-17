@@ -53,8 +53,8 @@ const markdownDocBehavior = (file, context, options) => {
   const opts = {
     stackSnippets: false,
     snippetExcludeRe: /^\s*(?:\/\/|\/\*)\s*no\b/i,
+    ...options,
   };
-  Object.assign(opts, options);
   const refreshDocContext = () => {
     if (!opts.stackSnippets) {
       docContext = { ...context };
