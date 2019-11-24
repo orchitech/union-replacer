@@ -27,6 +27,8 @@ const UnionReplacer = require('union-replacer');
 
 ```
 replacer = new UnionReplacer([replace_pairs])
+replacer = new UnionReplacer(replace_pairs, flags)
+replacer = new UnionReplacer([flags])
 replacer.addReplacement(regexp, newSubstr|function)
 newStr = replacer.replace(str)
 ```
@@ -35,7 +37,8 @@ newStr = replacer.replace(str)
 
 - `replace_pairs`: array of `[regexp, replacement]` arrays, a shorthand for multiple calls of `UnionReplacer.prototype.addReplacement()`
 - `function`: see [Specifying a function as a parameter
-](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_function_as_a_parameter)
+](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_function_as_a_parameter). As of 1.1.0, the function can be called
+with extended arguments, see JSDoc for more info.
 - `newSubstr`: see [Specifying a string as a parameter
 ](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_string_as_a_parameter)
 
@@ -273,7 +276,7 @@ replacer2.replace(text); // (FOO)(nonfoo)(FOO)(nonfoo)
 
 ### Performance
 
-Most important, the code is compact, slightly over 100 lines.
+Most important, the code was written with performance in mind.
 
 In runtime, `UnionReplacer` performs one-pass processing driven by
 a single native regexp.
@@ -300,4 +303,5 @@ It is better to avoid them completely and use hex escapes instead (`\xNN`).
 ### Regexp flags
 
 Any flags in paticular search regexps are ignored.
-The resulting replacement is always global (`g`) and multiline (`m`).
+The resulting replacement has always the flags from construcor call,
+which defaults to global (`g`) and multiline (`m`).

@@ -2,6 +2,7 @@
   "extends": "airbnb-base",
   "rules": {
     "no-plusplus": "off",
-    "max-classes-per-file": "off"
+    "no-cond-assign": ["error", "except-parens"],
+    "no-unused-expressions": ["error", { "allowShortCircuit": true }]
   }
 }

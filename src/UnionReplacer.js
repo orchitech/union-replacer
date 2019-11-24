@@ -7,78 +7,30 @@
  * combined from user-supplied patterns, which makes it very efficient.
  */
 
-/**
- * Single pattern and replacement encapsulation.
- * @private
- */
-class UnionReplacerRule {
-  constructor(pattern, replacement) {
-    if (pattern.constructor !== RegExp) {
-      throw new TypeError(`Replacement pattern ${pattern} is not a RegExp.`);
+import UnionReplacerElement from './UnionReplacerElement';
+import ReplacementStringBuilder from './ReplacementStringBuilder';
+import MatchingContext from './MatchingContext';
+
+// Sum number of capture groups within the provided elements
+const countCaptureGroups = (elements) => elements
+  .reduce((num, element) => num + element.captureCount, 0);
+
+// Performance-critical
+const findMatchingElementEs6 = (elements, fullMatch) => elements
+  .find((element) => fullMatch[element.captureNum] !== undefined);
+// ...but avoid polyfill
+const findMatchingElementEs5 = (elements, fullMatch) => {
+  for (let i = 0; i < elements.length; i++) {
+    const element = elements[i];
+    if (fullMatch[element.captureNum] !== undefined) {
+      return element;
     }
-    this.pattern = pattern;
-    if (typeof replacement === 'function') {
-      this.replacementFn = replacement;
-    } else {
-      this.replacementFn = this.stringReplacer;
-      this.replacementArg = String(replacement);
-    }
   }
-
-  compile(captureNum) {
-    let captureCount = 0;
-    // regexp adapted from https://github.com/slevithan/xregexp
-    const parts = /(\(\?<)(?=[^!=])|(\()(?!\?)|\\([1-9]\d*)|\\[\s\S]|\[(?:[^\\\]]|\\[\s\S])*\]/g;
-    const patternStr = this.pattern.source.replace(parts,
-      (match, parenNamed, paren, backref) => {
-        if (paren || parenNamed) {
-          captureCount++;
-        } else if (backref) {
-          if (+backref > captureCount) {
-            throw new SyntaxError(`Octal or backreference to undefined capture group ${backref} in ${this.pattern}`);
-          }
-          // renumber backreference
-          return `\\${+backref + captureNum}`;
-        }
-        return match;
-      });
-    this.captureNum = captureNum;
-    this.capturePatternStr = `(${patternStr})`;
-    this.captureCount = captureCount + 1;
-  }
-
-  stringReplacer(...args) {
-    const match = args[0];
-    // offset and on...
-    let argIndex = this.captureCount;
-    const offset = args[argIndex++];
-    const string = args[argIndex++];
-    const namedCaptures = args[argIndex++] || {};
-    return this.replacementArg.replace(/\$([1-9]\d*)|\$([&`'$])|\$<([^\d\s>][^\s>]*)>/g,
-      (m, capture, special, namedCapture) => {
-        if (capture && +capture <= this.captureCount - 1) {
-          return args[+capture];
-        }
-        if (special) {
-          switch (special) {
-            case '$': return '$';
-            case '&': return match;
-            case '`': return string.substring(0, offset);
-            case "'": return string.substring(offset + match.length);
-            default: throw new Error();
-          }
-        }
-        if (namedCapture && namedCapture in namedCaptures) {
-          return namedCaptures[namedCapture];
-        }
-        return m;
-      });
-  }
-}
-
-// Sum number of capture groups within the provided rules
-const unionReplacerCountCaptureGroups = (rules) => rules
-  .reduce((num, rule) => num + rule.captureCount, 0);
+  return undefined;
+};
+const findMatchingElement = Array.prototype.find
+  ? findMatchingElementEs6
+  : findMatchingElementEs5;
 
 /**
  * Class encapsulating several {@link String#replace}-like replacements
@@ -86,19 +38,31 @@ const unionReplacerCountCaptureGroups = (rules) => rules
  */
 class UnionReplacer {
   /**
-   * Create a union replacer and optionally initialize it with set of replace rules.
-   * @param {Array} [replaces] Optional array of replaces.
+   * Create a union replacer and optionally initialize it with set of replace elements.
+   * @param {Array|string} [replacesOrFlags] Initial replaces, can be omitted
+   *   in favor of `flagsArg`.
+   * @param {string} [flagsArg] Flags for replacement, defaults to 'gm'.
+   * @example new UnionReplacer([[/\$foo\b/, 'bar']], [/\\(.)/, '$1']], 'gi')
    * @example new UnionReplacer([[/\$foo\b/, 'bar']], [/\\(.)/, '$1']])
+   * @example new UnionReplacer('gi')
    * @example new UnionReplacer()
    * @see #addReplacement
+   * @see RegExp#flags
    */
-  constructor(replaces) {
+  constructor(replacesOrFlags, flagsArg) {
+    const args = [replacesOrFlags, flagsArg];
+    const fnArgc = this.constructor.length;
+    arguments.length < fnArgc && !Array.isArray(replacesOrFlags) && args.unshift(undefined);
+    const [replaces = [], flags = 'gm'] = [...args];
+
+    /** @readonly */
+    this.flags = flags;
     /** @private */
-    this.rules = [];
+    this.elements = [];
     /** @private */
     this.compiled = false;
     if (replaces) {
-      replaces.forEach((replace) => this.addReplacement(replace[0], replace[1]));
+      replaces.forEach((replace) => this.addReplacement(...replace));
     }
   }
 
@@ -113,30 +77,32 @@ class UnionReplacer {
    *   Replacement strings:
    *     - Syntax is the same as for {@link String#replace}:
    *       {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_string_as_a_parameter|Specifying a string as a parameter}
-   *     - ES2018 named capture groups follows the proposal syntax `$<name>`
-   *   Replacement function:
+   *     - ES2018 named capture groups follow the proposal syntax `$<name>`
+   *   Replacement function is by default the {@link String#replace}-style function:
    *     - The same as for {@link String#replace}:
    *       {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_function_as_a_parameter|Specifying a function as a parameter}
-   *     - Eventual extra parameters passed by the JavaScript engine after the last
-   *       standard parameter "string" are just handed over without change. This is
-   *       mainly relevant for ES2018 named capture groups, which adds extra parameter
-   *       with named capture group matches, i.e.
+   *     - If ES2018 named capture groups are used, their values are passed
+   *       as the last argument just like in the standard JavaScript replacements:
    *       `(match, p1, ..., pn, offset, string, namedCaptures) => { ... }`.
    *       Unlike numbered captures that are narrowed for the particular match,
-   *       this extra `namedCaptures` parameter would contain keys for all the named capture
-   *       groups within the replacer and the values of "foreign" named captures would be
-   *       always `undefined`.
+   *       this extra `namedCaptures` parameter would contain keys for all the named
+   *       capture groups within the replacer and the values of "foreign" named captures
+   *       would be always `undefined`.
+   *   Replacement function can also be specified as `extended`. Then only one parameter is
+   *   passed, an instance of {@link MatchingContext}. This variant is more powerful.
+   * @param {boolean} [extended] If truthy, the {@link MatchingContext} will be passed
+   *   to the replacement function instead of {@link String#replace}-ish parameters.
    * @throws {SyntaxError} Octal escapes are not allowed in patterns.
    * @throws Will throw an error if the replacer is frozen, i.e. compiled.
    * @see {@link https://github.com/orchitech/union-replacer/blob/master/README.md#alternation-semantics|Alternation semantics}
    */
-  addReplacement(pattern, replacement) {
+  addReplacement(pattern, replacement, extended) {
     if (this.compiled) {
-      throw new Error('Dynamic rule changes not yet supported.');
+      throw new Error('Dynamic element changes not yet supported.');
     }
-    const rule = new UnionReplacerRule(pattern, replacement);
-    rule.compile(unionReplacerCountCaptureGroups(this.rules) + 1);
-    this.rules.push(rule);
+    const element = new UnionReplacerElement(pattern, replacement, extended);
+    element.compile(countCaptureGroups(this.elements) + 1);
+    this.elements.push(element);
   }
 
   /**
@@ -158,30 +124,53 @@ class UnionReplacer {
    *   in different replacement patterns.
    */
   compile() {
-    this.totalCaptureGroups = unionReplacerCountCaptureGroups(this.rules);
-    const regexpStr = this.rules.map((rule) => rule.capturePatternStr).join('|');
-    this.regexp = new RegExp(regexpStr, 'gm');
+    this.totalCaptureGroups = countCaptureGroups(this.elements);
+    const regexpStr = this.elements.map((element) => element.capturePatternStr).join('|');
+    this.regexp = new RegExp(regexpStr, this.flags);
     this.compiled = true;
   }
 
   /**
    * Perform search and replace with the combined patterns and use corresponding
    * replacements for the particularly matched patterns.
-   * @param {String} string Input to search and process.
-   * @returns {String} New string with the matches replaced.
+   * @param {String} subject Input to search and process.
+   * @param {Object} [userCtx={}] User-provided context to be passed as `this` when
+   *   calling replacement functions and as a parameter of the builder calls.
+   * @param {Object} [builder=new ReplacementStringBuilder()] Collects and builds
+   *   the result from unmatched subject slices and replaced matches. A custom
+   *   builder allows for creating arbitrary structures based on matching or e.g.
+   *   streaming these chunks without building any output.
+   * @returns {String|*} New string with the matches replaced. Or any type when a
+   *   custom builder is provided.
    * @see #addReplacement
    */
-  replace(string) {
-    if (!this.compiled) {
-      this.compile();
+  replace(subject, userCtx = {}, builder = new ReplacementStringBuilder()) {
+    this.compiled || this.compile();
+    const ctx = new MatchingContext(this);
+    // Allow for reentrancy
+    const savedLastIndex = this.regexp.lastIndex;
+    try {
+      this.regexp.lastIndex = 0;
+      let prevLastIndex = 0;
+      while ((ctx.match = this.regexp.exec(subject)) !== null) {
+        const element = findMatchingElement(this.elements, ctx.match);
+        element.narrowMatch(ctx, this.totalCaptureGroups);
+        ctx.reset();
+        builder.addSubjectSlice(subject, prevLastIndex, ctx.match.index, ctx, userCtx);
+        const replaced = element.replacementFn.call(userCtx, ctx);
+        builder.addReplacedString(replaced, ctx, userCtx);
+        prevLastIndex = Math.min(ctx.match.index + ctx.match[0].length, ctx.lastIndex);
+        // Also would solve eventual reentrant calls, but needed anyway
+        this.regexp.lastIndex = ctx.lastIndex;
+        if (!this.regexp.global) {
+          break;
+        }
+      }
+      builder.addSubjectSlice(subject, prevLastIndex, subject.length, ctx, userCtx);
+      return builder.build();
+    } finally {
+      this.regexp.lastIndex = savedLastIndex;
     }
-    return string.replace(this.regexp, (...args) => {
-      const rule = this.rules.find((item) => typeof args[item.captureNum] !== 'undefined');
-      const newargs = args
-        .slice(rule.captureNum, rule.captureNum + rule.captureCount)
-        .concat(args.slice(1 + this.totalCaptureGroups));
-      return rule.replacementFn(...newargs);
-    });
   }
 }
 

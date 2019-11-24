@@ -11,7 +11,7 @@ const RULES = [
       || args[4] !== 'anotherfuncfoobar'
       || typeof (args[5]) !== 'object'
       || args[5].named !== 'bar') {
-      return `Replacement function received incorrect arguments: ${args}`;
+      return `Replacement function received incorrect arguments: ${args.toString()}`;
     }
     return 'ok';
   }],
