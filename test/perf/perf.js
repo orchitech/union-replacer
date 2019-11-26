@@ -14,9 +14,11 @@
   }
 
   const suiteOptions = {
+
     onStart: function () {
       log('\n' + this.name + ':');
     },
+
     onCycle: function (event) {
       log('\n' + String(event.target));
       scrollToEnd();
@@ -34,10 +36,11 @@
       }
       scrollToEnd();
     },
+
   };
 
   // Expose as global
-  window.run = function () {
+  window.run = function runSuites() {
     log('Testing UnionReplacer.\n');
     suites[0].run();
   };
@@ -45,24 +48,26 @@
   /**
    * Start of perf suites
    */
-  (function () {
+  (function start() {
     const htmlEscapes = [
       [/</, '&lt;'],
       [/>/, '&gt;'],
       [/"/, '&quot;'],
       [/&/, '&amp;'],
     ];
+
     const htmlEscaper = new UnionReplacer(htmlEscapes);
+
     const mdHighlighter = new UnionReplacer([
-      [/^(`{3,}).*\n([\s\S]*?)(^\1`*\s*?$|\Z)/, (match, fence1, pre, fence2) => {
-        let block = `<b>${fence1}</b><br />\n`;
-        block += `<pre>${htmlEscaper.replace(pre)}</pre><br />\n`;
-        block += `<b>${fence2}</b>`;
+      [/^(`{3,}).*\n([\s\S]*?)(^\1`*\s*?$|\Z)/, function replace(match, fence1, pre, fence2) {
+        let block = '<b>' + fence1 + '</b><br />\n';
+        block += '<pre>' + htmlEscaper.replace(pre) + '</pre><br />\n';
+        block += '<b>' + fence2 + '</b>';
         return block;
       }],
 
-      [/(^|[^`])(`+)(?!`)(.*?[^`]\2)(?!`)/, (match, lead, delim, code) => {
-        return `${htmlEscaper.replace(lead)}<code>${htmlEscaper.replace(code)}</code>`;
+      [/(^|[^`])(`+)(?!`)(.*?[^`]\2)(?!`)/, function replace(match, lead, delim, code) {
+        return htmlEscaper.replace(lead) + '<code>' + htmlEscaper.replace(code) + '</code>';
       }],
 
       [/[*~=+_-`]+/, '<b>$&</b>'],
@@ -70,41 +75,55 @@
     ].concat(htmlEscapes));
 
     const toBeMarkdownHighlighted = '\
-**Markdown** code to be "highlighted"\n\
-with special care to fenced code blocks:\n\
-````\n\
-_Markdown_ within fenced code blocks is not *processed*:\n\
-```\n\
-Even embedded "fence strings" work well with **UnionEscaper**\n\
-```\n\
-````\n\
-*CommonMark is sweet & cool.*';
+      **Markdown** code to be "highlighted"\n\
+      with special care to fenced code blocks:\n\
+      ````\n\
+      _Markdown_ within fenced code blocks is not *processed*:\n\
+      ```\n\
+      Even embedded "fence strings" work well with **UnionEscaper**\n\
+      ```\n\
+      ````\n\
+      *CommonMark is sweet & cool.*';
 
     const mdHighlightRe = /(^(`{3,}).*\n([\s\S]*?)(^\2`*\s*?$|\Z))|((^|[^`])(`+)(?!`)(.*?[^`]\7)(?!`))|([*~=+_-`]+)|(\n)|(<)|(>)|(")|(&)/gm;
 
-    const suite = new Benchmark.Suite('First test', suiteOptions)
-      .add('UnionReplacer method', (() => {
+    const suite = new Benchmark.Suite('Starting test', suiteOptions)
+      .add('UnionReplacer method: \'UnionReplacer.prototype.replace\'', function highlight() {
         mdHighlighter.replace(toBeMarkdownHighlighted);
-      }), benchmarkOptions)
+      }, benchmarkOptions)
       .add('String replace method', function highlight() {
-        const myHtmlEscape = (str) => str;
+        const myHtmlEscape = function escape(str) { return str; };
         toBeMarkdownHighlighted.replace(mdHighlightRe,
-          function (match, fenced, fence1, pre, fence2, codespan, lead, delim, code, special, nl, lt, gt, quot, amp) {
+          function asd(match, fenced, fence1, pre, fence2, codespan, lead, delim,
+            code, special, nl, lt, gt, quot, amp) {
             if (fenced) {
-              let block = `<b>${fence1}</b><br />\n`;
-              block += `<pre>${htmlEscaper.replace(pre)}</pre><br />\n`;
-              block += `<b>${fence2}</b>`;
+              let block = '<b>' + fence1 + '</b><br />\n';
+              block += '<pre>' + htmlEscaper.replace(pre) + '</pre><br />\n';
+              block += '<b>' + fence2 + '</b>';
               return block;
             }
             if (codespan) {
-              return `${myHtmlEscape(lead)}<code>${myHtmlEscape.replace(code)}</code>`;
+              return myHtmlEscape(lead) + '<code>' + myHtmlEscape.replace(code) + '</code>';
             }
             if (special) {
-              return `<b>${special}</b>`;
+              return '<b>' + special + '</b>';
             }
             if (nl) {
               return '<br />\n';
-            } // else etc.
+            }
+            if (lt) {
+              return '<';
+            }
+            if (gt) {
+              return '>';
+            }
+            if (quot) {
+              return '"';
+            }
+            if (amp) {
+              return '&';
+            }
+            return null;
           });
       }, benchmarkOptions);
 
