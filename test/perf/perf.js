@@ -1,93 +1,94 @@
-(function run() {
-  const outputBox = document.getElementById('log');
-  const suites = [];
-  const benchmarkOptions = {
-    async: true,
-  };
+const root = (typeof global === 'object' && global) || this;
+const Benchmark = root.Benchmark || require('benchmark');
+const UnionReplacer = root.UnionReplacer || require('../../dist/union-replacer.umd');
 
-  function log(msg) {
-    outputBox.insertAdjacentHTML('beforeend', msg.replace(/\n/g, '<br>'));
+const suites = [];
+const benchmarkOptions = {
+  async: true,
+};
+
+function log(message) {
+  if (root.document) {
+    root.document.getElementById('log').insertAdjacentHTML('beforeend', message.concat('<br>').replace(/\n/g, '<br>'));
+  } else {
+    console.log(message);
   }
+}
 
-  function scrollToEnd() {
-    window.scroll(0, document.body.scrollHeight);
-  }
+const suiteOptions = {
 
-  const suiteOptions = {
+  onStart: function () {
+    log(this.name + ':');
+  },
 
-    onStart: function () {
-      log('\n' + this.name + ':');
-    },
+  onCycle: function (event) {
+    log(String(event.target));
+  },
 
-    onCycle: function (event) {
-      log('\n' + String(event.target));
-      scrollToEnd();
-    },
+  onComplete: function () {
+    log('\nFastest is ' + this.filter('fastest').map('name'));
+    // Remove current suite from queue
+    suites.shift();
+    if (suites.length) {
+      // Run next suite
+      suites[0].run();
+    } else {
+      log('\nFinished.');
+    }
+  },
 
-    onComplete: function () {
-      log('\nFastest is ' + this.filter('fastest').map('name') + '\n');
-      // Remove current suite from queue
-      suites.shift();
-      if (suites.length) {
-        // Run next suite
-        suites[0].run();
-      } else {
-        log('\nFinished.');
-      }
-      scrollToEnd();
-    },
+};
 
-  };
+// Expose as global
+function run() {
+  log('Testing UnionReplacer.\n');
+  suites[0].run();
+}
 
-  // Expose as global
-  window.run = function runSuites() {
-    log('Testing UnionReplacer.\n');
-    suites[0].run();
-  };
+/**
+ * Start of perf suites
+ */
+(function start() {
+  const htmlEscapes = [
+    [/</, '&lt;'],
+    [/>/, '&gt;'],
+    [/"/, '&quot;'],
+    [/&/, '&amp;'],
+  ];
 
-  /**
-   * Start of perf suites
-   */
-  (function start() {
-    const htmlEscapes = [
-      [/</, '&lt;'],
-      [/>/, '&gt;'],
-      [/"/, '&quot;'],
-      [/&/, '&amp;'],
-    ];
+  const htmlEscaper = new UnionReplacer(htmlEscapes);
 
-    const htmlEscaper = new UnionReplacer(htmlEscapes);
+  const mdHighlighter = new UnionReplacer([
+    [/^(`{3,}).*\n([\s\S]*?)(^\1`*\s*?$|\Z)/, function replace(match, fence1, pre, fence2) {
+      let block = '<b>' + fence1 + '</b><br />\n';
+      block += '<pre>' + htmlEscaper.replace(pre) + '</pre><br />\n';
+      block += '<b>' + fence2 + '</b>';
+      return block;
+    }],
 
-    const mdHighlighter = new UnionReplacer([
-      [/^(`{3,}).*\n([\s\S]*?)(^\1`*\s*?$|\Z)/, function replace(match, fence1, pre, fence2) {
-        let block = '<b>' + fence1 + '</b><br />\n';
-        block += '<pre>' + htmlEscaper.replace(pre) + '</pre><br />\n';
-        block += '<b>' + fence2 + '</b>';
-        return block;
-      }],
+    [/(^|[^`])(`+)(?!`)(.*?[^`]\2)(?!`)/, function replace(match, lead, delim, code) {
+      return htmlEscaper.replace(lead) + '<code>' + htmlEscaper.replace(code) + '</code>';
+    }],
 
-      [/(^|[^`])(`+)(?!`)(.*?[^`]\2)(?!`)/, function replace(match, lead, delim, code) {
-        return htmlEscaper.replace(lead) + '<code>' + htmlEscaper.replace(code) + '</code>';
-      }],
+    [/[*~=+_-`]+/, '<b>$&</b>'],
+    [/\n/, '<br />\n'],
+  ].concat(htmlEscapes));
 
-      [/[*~=+_-`]+/, '<b>$&</b>'],
-      [/\n/, '<br />\n'],
-    ].concat(htmlEscapes));
+  const toBeMarkdownHighlighted = '\
+    **Markdown** code to be "highlighted"\n\
+    with special care to fenced code blocks:\n\
+    ````\n\
+    _Markdown_ within fenced code blocks is not *processed*:\n\
+    ```\n\
+    Even embedded "fence strings" work well with **UnionEscaper**\n\
+    ```\n\
+    ````\n\
+    *CommonMark is sweet & cool.*';
 
-    const toBeMarkdownHighlighted = '\
-      **Markdown** code to be "highlighted"\n\
-      with special care to fenced code blocks:\n\
-      ````\n\
-      _Markdown_ within fenced code blocks is not *processed*:\n\
-      ```\n\
-      Even embedded "fence strings" work well with **UnionEscaper**\n\
-      ```\n\
-      ````\n\
-      *CommonMark is sweet & cool.*';
+  const mdHighlightRe = /(^(`{3,}).*\n([\s\S]*?)(^\2`*\s*?$|\Z))|((^|[^`])(`+)(?!`)(.*?[^`]\7)(?!`))|([*~=+_-`]+)|(\n)|(<)|(>)|(")|(&)/gm;
 
-    const mdHighlightRe = /(^(`{3,}).*\n([\s\S]*?)(^\2`*\s*?$|\Z))|((^|[^`])(`+)(?!`)(.*?[^`]\7)(?!`))|([*~=+_-`]+)|(\n)|(<)|(>)|(")|(&)/gm;
-
-    const suite = new Benchmark.Suite('Starting test', suiteOptions)
+  (function () {
+    suites.push(new Benchmark.Suite('Replace test', suiteOptions)
       .add('UnionReplacer method: \'UnionReplacer.prototype.replace\'', function highlight() {
         mdHighlighter.replace(toBeMarkdownHighlighted);
       }, benchmarkOptions)
@@ -125,8 +126,8 @@
             }
             return null;
           });
-      }, benchmarkOptions);
-
-    suites.push(suite);
+      }, benchmarkOptions));
   }());
 }());
+
+run();

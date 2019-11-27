@@ -6,7 +6,6 @@
     "import/no-unresolved": "off",
     "no-cond-assign": ["error", "except-parens"],
     "prefer-arrow-callback": 0,
-    "no-undef": 0,
     "no-multi-str": 0,
     "prefer-template": 0,
     "func-names": 0,

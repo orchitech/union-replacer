@@ -18,33 +18,52 @@
 <body>
   <div id="log"></div>
 
-  <script src="../../node_modules/lodash/lodash.js"></script>
-  <script src="../../node_modules/platform/platform.js"></script>
-  <script src="../../node_modules/benchmark/benchmark.js"></script>
-  <script src="../../dist/union-replacer.umd.js"></script>
-  <script src="perf.js"></script>
+  <script src="../../node_modules/requirejs/require.js"></script>
 
   <script>
-    // Load an applet for higher-precision timing if needed and not manually disabled.
-    // Adapted from Lo-Dash <http://lodash.com/> performance tests.
     (function() {
-      if (/[?&]nojava=true(?:&|$)/.test(location.search)) {
-        return;
-      }
-      var perf = window.performance,
-        begin = new Date,
-        measured;
-      // Check whether the applet is needed
-      while (!(measured = new Date - begin)) {
-        // No-op
-      }
-      if (measured !== 1 && !(perf && (perf.now || perf.webkitNow))) {
-        document.write('<applet code="nano" archive="../vendor/benchmark.js/nano.jar"></applet>');
-      }
-    }());
+      requirejs.config({
+          'baseUrl': './',
+          'urlArgs': 't=' + (+new Date),
+          'waitSeconds': 0,
+          'packages': [
+            {
+              'name': 'benchmark',
+              'location': '../../node_modules/benchmark',
+              'main': 'benchmark'
+            },
+            {
+              'name': 'lodash',
+              'location': '../../node_modules/lodash',
+              'main': 'lodash'
+            },
+            {
+              'name': 'platform',
+              'location': '../../node_modules/platform',
+              'main': 'platform'
+            },
+            {
+              'name': 'UnionReplacer',
+              'location': '../../dist/',
+              'main': 'union-replacer.umd'
+            },
+            {
+              'name': 'perf',
+              'location': '.',
+              'main': 'perf'
+            }
+          ]
+        });
 
-    // Global run function provided by perf script
-    onload = run;
+        require(['benchmark', 'UnionReplacer'], function(Benchmark, UnionReplacer) {
+          benchmarkModule = window.Benchmark = Benchmark;
+          unionReplacerModule = window.UnionReplacer = UnionReplacer;
+          require(['perf'], function() {
+
+          });
+        });
+    }());
   </script>
+
 </body>
 </html>

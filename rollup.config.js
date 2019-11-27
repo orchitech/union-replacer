@@ -28,6 +28,7 @@ export default [
       { file: pkg.main, format: 'cjs' },
       { file: pkg.module, format: 'es' },
       { file: pkg.browser, name: 'UnionReplacer', format: 'umd' },
+      { file: 'dist/union-replacer.js', name: 'UnionReplacer', format: 'iife' },
     ],
   },
 ];
