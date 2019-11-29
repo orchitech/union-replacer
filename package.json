@@ -11,7 +11,7 @@
     "build": "rollup -c",
     "pretest": "npm run build",
     "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json",
-    "benchmark": "node test/perf/perf.js",
+    "benchmark": "node test/perf/runner.js",
     "prepublish": "npm test"
   },
   "repository": {

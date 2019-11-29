@@ -1,69 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>Union Replacer Performance Tests</title>
-  <style>
-    body {
-      font-family: Calibri, Verdana, Sans-serif;
-      padding: 30px;
-      margin: 0;
-    }
-    applet {
-      position: absolute;
-      left: -9999px;
-    }
-  </style>
-</head>
-<body>
-  <div id="log"></div>
-
-  <script src="../../node_modules/requirejs/require.js"></script>
-
-  <script>
-    (function() {
-      requirejs.config({
-          'baseUrl': './',
-          'urlArgs': 't=' + (+new Date),
-          'waitSeconds': 0,
-          'packages': [
-            {
-              'name': 'benchmark',
-              'location': '../../node_modules/benchmark',
-              'main': 'benchmark'
-            },
-            {
-              'name': 'lodash',
-              'location': '../../node_modules/lodash',
-              'main': 'lodash'
-            },
-            {
-              'name': 'platform',
-              'location': '../../node_modules/platform',
-              'main': 'platform'
-            },
-            {
-              'name': 'UnionReplacer',
-              'location': '../../dist/',
-              'main': 'union-replacer.umd'
-            },
-            {
-              'name': 'perf',
-              'location': '.',
-              'main': 'perf'
+    <head>
+        <meta charset="utf-8">
+        <title>Union Replacer Performance Tests</title>
+        <style>
+            body {
+                font-family: Calibri, Verdana, Sans-serif;
+                padding: 30px;
+                margin: 0;
             }
-          ]
-        });
+            applet {
+                position: absolute;
+                left: -9999px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="log"></div>
 
-        require(['benchmark', 'UnionReplacer'], function(Benchmark, UnionReplacer) {
-          benchmarkModule = window.Benchmark = Benchmark;
-          unionReplacerModule = window.UnionReplacer = UnionReplacer;
-          require(['perf'], function() {
+        <script src="../../node_modules/requirejs/require.js"></script>
 
-          });
-        });
-    }());
-  </script>
-
-</body>
+        <script>
+            (function() {
+                requirejs(['./config'], function() {
+                    requirejs(['benchmark', 'UnionReplacer', 'Logger'], function(Benchmark, UnionReplacer, Logger) {
+                        window.Benchmark = Benchmark;
+                        window.UnionReplacer = UnionReplacer;
+                        window.Logger = Logger;
+                        requirejs(['perf'], function(perf) {
+                            perf.run();
+                        });
+                    });
+                });
+            }());
+        </script>
+    </body>
 </html>
