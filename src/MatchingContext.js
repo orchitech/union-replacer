@@ -35,6 +35,15 @@ class MatchingContext {
       ? mlen
       : emptyMatchAdvance(this.match.input, index, this.replacer.regexp.unicode));
   }
+
+  atStart() {
+    return this.match.index === 0;
+  }
+
+  atEnd() {
+    const { match } = this;
+    return match.index + match[0].length >= match.input.length;
+  }
 }
 
 export default MatchingContext;
