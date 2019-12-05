@@ -1,6 +1,6 @@
 {
   "name": "union-replacer",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "One-pass String.prototype.replace-like processor with multiple regexps and replacements",
   "main": "dist/union-replacer.cjs.js",
   "module": "dist/union-replacer.esm.js",
