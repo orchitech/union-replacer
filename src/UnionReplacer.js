@@ -125,7 +125,9 @@ class UnionReplacer {
    */
   compile() {
     this.totalCaptureGroups = countCaptureGroups(this.elements);
-    const regexpStr = this.elements.map((element) => element.capturePatternStr).join('|');
+    const regexpStr = this.elements.length > 0
+      ? this.elements.map((element) => element.capturePatternStr).join('|')
+      : '^[^\\s\\S]';
     this.regexp = new RegExp(regexpStr, this.flags);
     this.compiled = true;
   }

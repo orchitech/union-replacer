@@ -75,4 +75,9 @@ describe('UnionReplacer.js', () => {
       }).toThrowError(SyntaxError);
     });
   });
+
+  it('passes through the input when no replaces are set', () => {
+    const replacer = new UnionReplacer('g');
+    expect(replacer.replace('foo')).toBe('foo');
+  });
 });
