@@ -39,31 +39,24 @@ const findMatchingElement = Array.prototype.find
 class UnionReplacer {
   /**
    * Create a union replacer and optionally initialize it with set of replace elements.
-   * @param {Array|string} [replacesOrFlags] Initial replaces, can be omitted
-   *   in favor of `flagsArg`.
-   * @param {string} [flagsArg] Flags for replacement, defaults to 'gm'.
-   * @example new UnionReplacer([[/\$foo\b/, 'bar']], [/\\(.)/, '$1']], 'gi')
-   * @example new UnionReplacer([[/\$foo\b/, 'bar']], [/\\(.)/, '$1']])
-   * @example new UnionReplacer('gi')
-   * @example new UnionReplacer()
+   *
+   * @param {Array} replaces - Initial replaces, can be omitted
+   * in favor of `flagsArg`.
+   * @param {string} [flags] - Flags for replacement, defaults to 'gm'.
+   * @example replacer = new UnionReplacer([[/\$foo\b/, 'bar'], [/\\(.)/, '$1']], 'gi');
+   * @example replacer = new UnionReplacer([[/\$foo\b/, 'bar'], [/\\(.)/, '$1']]);
+   * @todo Merge {@link #addReplacement} JSDoc and functionality here.
    * @see #addReplacement
    * @see RegExp#flags
    */
-  constructor(replacesOrFlags, flagsArg) {
-    const args = [replacesOrFlags, flagsArg];
-    const fnArgc = this.constructor.length;
-    arguments.length < fnArgc && !Array.isArray(replacesOrFlags) && args.unshift(undefined);
-    const [replaces = [], flags = 'gm'] = [...args];
-
+  constructor(replaces, flags = 'gm') {
     /** @readonly */
     this.flags = flags;
     /** @private */
     this.elements = [];
     /** @private */
     this.compiled = false;
-    if (replaces) {
-      replaces.forEach((replace) => this.addReplacement(...replace));
-    }
+    replaces.forEach((replace) => this.addReplacement(...replace));
   }
 
   /**
@@ -71,8 +64,9 @@ class UnionReplacer {
    * calls is important: if any pattern is matched, the corresponding amount of input
    * is consumed and subsequent patterns will not match on such part of the input.
    *
-   * @param {RegExp} pattern Regexp to match. The flags are ignored.
-   * @param {(string|Function)} replacement Replacement string or function to be
+   * @private
+   * @param {RegExp} pattern - Regexp to match. The flags are ignored.
+   * @param {(string|Function)} replacement - Replacement string or function to be
    *   applied if the pattern matches.
    *   Replacement strings:
    *     - Syntax is the same as for {@link String#replace}:
@@ -135,12 +129,12 @@ class UnionReplacer {
   /**
    * Perform search and replace with the combined patterns and use corresponding
    * replacements for the particularly matched patterns.
-   * @param {String} subject Input to search and process.
-   * @param {Object} [userCtx={}] User-provided context to be passed as `this` when
+   * @param {String} subject - Input to search and process.
+   * @param {Object} [userCtx={}] - User-provided context to be passed as `this` when
    *   calling replacement functions and as a parameter of the builder calls.
-   * @param {Object} [builder=new ReplacementStringBuilder()] Collects and builds
+   * @param {Object} [builder=new ReplacementStringBuilder()] - Collects and builds
    *   the result from unmatched subject slices and replaced matches. A custom
-   *   builder allows for creating arbitrary structures based on matching or e.g.
+   *   builder allows for creating arbitrary structures based on matching or
    *   streaming these chunks without building any output.
    * @returns {String|*} New string with the matches replaced. Or any type when a
    *   custom builder is provided.

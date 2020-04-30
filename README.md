@@ -26,21 +26,22 @@ const UnionReplacer = require('union-replacer');
 ### Synopsis
 
 ```
-replacer = new UnionReplacer([replace_pairs])
-replacer = new UnionReplacer(replace_pairs, flags)
-replacer = new UnionReplacer([flags])
-replacer.addReplacement(regexp, newSubstr|function)
+replacer = new UnionReplacer(replace_pairs, [flags])
 newStr = replacer.replace(str)
 ```
 
 ### Parameters
 
-- `replace_pairs`: array of `[regexp, replacement]` arrays, a shorthand for multiple calls of `UnionReplacer.prototype.addReplacement()`
-- `function`: see [Specifying a function as a parameter
-](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_function_as_a_parameter). As of 1.1.0, the function can be called
-with extended arguments, see JSDoc for more info.
-- `newSubstr`: see [Specifying a string as a parameter
-](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_string_as_a_parameter)
+- `replace_pairs`: array of `[regexp, replacement]` arrays, where
+  - `regexp`: particular regexp element in unioned regexp. Its eventual flags are ignored.
+  - `replacement` corresponds with `String.prototype.replace`:
+    - `function`: see
+      [Specifying a function as a parameter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_function_as_a_parameter).
+      As of 1.1.0, the function can be called with extended arguments, see JSDoc
+      for more info.
+    - `newSubstr`: see
+      [Specifying a string as a parameter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_string_as_a_parameter).
+- `flags`: regular expression flags to be set on the main underlying regexp, defaults to `gm`.
 
 ## Examples
 
