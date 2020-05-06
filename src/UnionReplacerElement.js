@@ -30,6 +30,7 @@ const wrapStringReplaceFn = (replacementFn) => function callStringReplaceFn(ctx)
 
 /**
  * Single pattern and replacement encapsulation.
+ *
  * @private
  */
 class UnionReplacerElement {
