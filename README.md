@@ -304,5 +304,5 @@ It is better to avoid them completely and use hex escapes instead (`\xNN`).
 ### Regexp flags
 
 Any flags in paticular search regexps are ignored.
-The resulting replacement has always the flags from construcor call,
+The resulting replacement has always the flags from constructor call,
 which defaults to global (`g`) and multiline (`m`).
