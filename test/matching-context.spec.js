@@ -1,6 +1,13 @@
 const UnionReplacer = require('../dist/union-replacer.cjs');
 
 describe('MatchingContext', () => {
+  /**
+   * Replace match.
+   *
+   * @param {object} mctx - Matching context.
+   * @returns {Array} Matching result.
+   * @example const r = new UnionReplacer([[/^x|y|z$/, startEndReplace, true]]);
+   */
   function startEndReplace(mctx) {
     const l = mctx.match[0].length;
     const s = mctx.atStart() ? 'S' : '_';
