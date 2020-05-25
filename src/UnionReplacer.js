@@ -32,50 +32,41 @@ const findMatchingElement = Array.prototype.find
   ? findMatchingElementEs6
   : findMatchingElementEs5;
 
+function compile() {
+  this.totalCaptureGroups = countCaptureGroups(this.elements);
+  const regexpStr = this.elements.length > 0
+    ? this.elements.map((element) => element.capturePatternStr).join('|')
+    : '^[^\\s\\S]';
+  this.regexp = new RegExp(regexpStr, this.flags);
+}
+
 /**
  * Class encapsulating several {@link String#replace}-like replacements
  * combined into a single one-pass text processor.
  */
 class UnionReplacer {
   /**
-   * @typedef {Array.<(RegExp|string|Function|boolean)>} Replace
-   * Replacement definition (similiar to {@link String#replace} arguments) with following items:
-   * - {RegExp} pattern - RegExp to match. The flags are ignored.
-   * - {(string|Function)} replacement - Replacement string or function to be
-   *   applied if the pattern matches.
-   *   Replacement strings:
-   *     - Syntax is the same as for {@link String#replace}:
-   *       {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_string_as_a_parameter|Specifying a string as a parameter}
-   *     - ES2018 named capture groups follow the proposal syntax `$<name>`.
-   *   Replacement function is by default the {@link String#replace}-style function:
-   *     - The same as for {@link String#replace}:
-   *       {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_function_as_a_parameter|Specifying a function as a parameter}
-   *     - If ES2018 named capture groups are used, their values are passed
-   *       as the last argument just like in the standard JavaScript replacements:
-   *       `(match, p1, ..., pn, offset, string, namedCaptures) => { ... }`.
-   *       Unlike numbered captures that are narrowed for the particular match,
-   *       this extra `namedCaptures` parameter would contain keys for all the named
-   *       capture groups within the replacer and the values of "foreign" named captures
-   *       would be always `undefined`.
-   *   Replacement function can also be specified as `extended`. Then only one parameter is
-   *   passed, an instance of {@link MatchingContext}. This variant is more powerful.
-   * - {boolean} [extend] - If truthy, the {@link MatchingContext} will be passed
-   *   to the replacement function instead of {@link String#replace}-ish parameters.
-   */
-
-  /**
-   * Create a union replacer and optionally initialize it with set of replace elements.
+   * Create a UnionReplacer instance performing the specified replaces.
    *
-   * @param {Replace[]} replaces - Initial replaces, can be omitted in favorof `flagsArg`.
-   * Appends a match and replace entry to this replacer. The order of elements in `replaces`
-   * is important: if any pattern is matched, the corresponding amount of input
-   * is consumed and subsequent patterns will not match on such part of the input.
+   * @param {UnionReplacer.ReplaceTuple[]} replaces - Replaces to be performed
+   *   specified as an array of {@link UnionReplacer.ReplaceTuple} array tuples.
+   *   The order of elements in `replaces` is important: if any pattern is matched,
+   *   the corresponding amount of input is consumed and subsequent patterns
+   *   will not match on such part of the input.
+   * @param {string} [flags=gm] - Flags for replacement, defaults to 'gm'.
+   * @throws {SyntaxError} Invalid regular expression pattern encountered. This
+   *   currently occurs when named capture groups of the same name are supplied
+   *   in different replacement patterns.
    * @throws {SyntaxError} Octal escapes are not allowed in patterns.
-   * @throws Will throw an error if the replacer is frozen, i.e. Compiled.
    * @see {@link https://github.com/orchitech/union-replacer/blob/master/README.md#alternation-semantics|Alternation semantics}
-   * @param {string} flags - Flags for replacement, defaults to 'gm'.
-   * @example replacer = new UnionReplacer([[/\$foo\b/, 'bar'], [/\\(.)/, '$1']], 'gi');
    * @example replacer = new UnionReplacer([[/\$foo\b/, 'bar'], [/\\(.)/, '$1']]);
+   * @example
+   * // Simple URI encoder
+   * replacer = new UnionReplacer([
+   *   [/ /, '+'],
+   *   [/[^\w.,-]/, (m) => `%${m.charCodeAt(0).toString(16)}`],
+   * ]);
+   * @example replacer = new UnionReplacer([[/\$foo\b/, 'bar'], [/\\(.)/, '$1']], 'gi');
    * @see RegExp#flags
    */
   constructor(replaces, flags = 'gm') {
@@ -86,61 +77,57 @@ class UnionReplacer {
     this.flags = flags;
     /** @private */
     this.elements = [];
-    /** @private */
-    this.compiled = false;
     replaces.forEach((replace) => {
       const element = new UnionReplacerElement(...replace);
       element.compile(countCaptureGroups(this.elements) + 1);
       this.elements.push(element);
     });
+    compile.call(this);
   }
 
   /**
-   * Process the configured replaces and prepare internal data structures.
-   * It is not needed to call this method explicitly as it is done automatically
-   * on first use on of the replacer.
-   * Calling this method makes sense to validate the replacer's pattern set
-   * and to fail early eventually.
-   * Currently it causes the replacements to be frozen.
-   * Forward compatibility:
-   * - Freezing the replacements is not guaranteed behavior in the future.
-   * - If string-supplied regular expression patterns were allowed, it would also
-   *   allow invalid patterns to be supplied. Some sort of regexp syntax errors would
-   *   be detected when building the replacer and other would be detected at the #compile time.
+   * Build the underlying combined regular expression. This method has no effect
+   * since v2.0, as the builder-like functionality has been removed and underlying
+   * data structures are prepared in the constructor.
    *
-   * @throws {SyntaxError} Invalid regular expression pattern encountered. This
-   *   currently occurs when named capture groups of the same name are supplied
-   *   in different replacement patterns.
-   *
-   * @example compile();
+   * @deprecated Since v2.0.
    */
+  // eslint-disable-next-line class-methods-use-this
   compile() {
-    this.totalCaptureGroups = countCaptureGroups(this.elements);
-    const regexpStr = this.elements.length > 0
-      ? this.elements.map((element) => element.capturePatternStr).join('|')
-      : '^[^\\s\\S]';
-    this.regexp = new RegExp(regexpStr, this.flags);
-    this.compiled = true;
   }
 
   /**
    * Perform search and replace with the combined patterns and use corresponding
    * replacements for the particularly matched patterns.
    *
+   * @method UnionReplacer#replace
+   * @variation 1
    * @param {string} subject - Input to search and process.
-   * @param {object} [userCtx={}] - User-provided context to be passed as `this` when
+   * @param {object} [userCtx={}] - User-provided context to be passed as `this`
+   *   when calling replacement functions and as a parameter of the builder calls.
+   * @returns {string} New string with the matches replaced. Or any type when a
+   *   custom builder is provided.
+   */
+
+  /**
+   * Perform search and replace with the combined patterns and use corresponding
+   * replacements for the particularly matched patterns. Pass the resulting chunks
+   * to an user-provided {@link UnionReplacer.ReplacementBuilder} instead of
+   * concatenating them into one string.
+   *
+   * @variation 2
+   * @template T
+   * @param {string} subject - Input to search and process.
+   * @param {object} userCtx - User-provided context to be passed as `this` when
    *   calling replacement functions and as a parameter of the builder calls.
-   * @param {object} [builder=new ReplacementStringBuilder()] - Collects and builds
+   * @param {UnionReplacer.ReplacementBuilder<T>} builder - Collects and builds
    *   the result from unmatched subject slices and replaced matches. A custom
    *   builder allows for creating arbitrary structures based on matching or
    *   streaming these chunks without building any output.
-   * @returns {string|*} New string with the matches replaced. Or any type when a
-   *   custom builder is provided.
-   *
-   * @example replacer.replace('x');
+   * @returns {T} Result built by the builder.
+   * @example replacer.replace('foo');
    */
   replace(subject, userCtx = {}, builder = new ReplacementStringBuilder()) {
-    this.compiled || this.compile();
     const ctx = new MatchingContext(this);
     // Allow for reentrancy
     const savedLastIndex = this.regexp.lastIndex;

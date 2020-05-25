@@ -43,6 +43,12 @@ newStr = replacer.replace(str)
       [Specifying a string as a parameter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_string_as_a_parameter).
 - `flags`: regular expression flags to be set on the main underlying regexp, defaults to `gm`.
 
+### API updates
+
+- v2.0 removes the `addReplacement()` method, see
+  [#4](https://github.com/orchitech/union-replacer/issues/4) for details.
+- v2.0 introduces TypeScript type definitions.
+
 ## Examples
 
 ### Convenient one-pass escaping of HTML special chars

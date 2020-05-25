@@ -1,19 +1,21 @@
 {
   "name": "union-replacer",
-  "version": "1.2.3",
+  "version": "2.0.0-beta.0",
   "description": "One-pass String.prototype.replace-like processor with multiple regexps and replacements",
   "main": "dist/union-replacer.cjs.js",
   "module": "dist/union-replacer.esm.js",
   "browser": "dist/union-replacer.umd.js",
-  "types": "dist/types.d.ts",
+  "types": "types",
   "scripts": {
     "lint": "eslint .",
-    "prebuild": "npm run lint",
-    "build": "rollup -c && npm run types",
-    "pretest": "npm run build",
+    "build": "rollup -c",
+    "pretest": "npm run build && npm run lint",
     "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json",
     "prepare": "npm test",
-    "types": "jsdoc -d dist -t node_modules/tsd-jsdoc/dist src/UnionReplacer.js src/ReplacementStringBuilder.js"
+    "preupdate-types": "npm run build",
+    "update-types": "jsdoc -d types -t node_modules/tsd-jsdoc/dist -c .jsdoc.conf.js",
+    "postupdate-types": "node scripts/tsd-postprocess.js",
+    "docs": "jsdoc -d dist/docs -c .jsdoc.conf.js"
   },
   "repository": {
     "type": "git",
@@ -43,7 +45,8 @@
     "alternation"
   ],
   "files": [
-    "dist"
+    "dist",
+    "types/index.d.ts"
   ],
   "author": "Martin Cizek <martin.cizek@orchitech.cz>",
   "license": "MIT",
