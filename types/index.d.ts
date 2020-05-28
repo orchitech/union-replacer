@@ -3,6 +3,7 @@
 // Do not modify directly.
 
 export = UnionReplacer;
+export as namespace UnionReplacer;
 
 /**
  * <p>Create a UnionReplacer instance performing the specified replaces.</p>

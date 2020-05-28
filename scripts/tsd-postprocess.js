@@ -64,6 +64,7 @@ const intro = [
   '// Do not modify directly.',
   '',
   `export = ${UnionReplacer.name};`,
+  `export as namespace ${UnionReplacer.name};`,
 ];
 const output = `${intro.join('\n')}\n\n${converted}`;
 fs.writeFileSync('types/index.d.ts', output, 'utf8');

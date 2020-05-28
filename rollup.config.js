@@ -9,6 +9,7 @@ export default [
       resolve(),
       babel({
         exclude: 'node_modules/**',
+        comments: false,
         presets: [
           [
             '@babel/env', {
@@ -19,6 +20,7 @@ export default [
                 esmodules: false,
               },
               useBuiltIns: false,
+              loose: true,
             },
           ],
         ],
