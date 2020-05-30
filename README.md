@@ -23,6 +23,16 @@ In [Node.js](http://nodejs.org/):
 const UnionReplacer = require('union-replacer');
 ```
 
+With [TypeScript](https://www.typescriptlang.org/):
+```js
+// with esModuleInterop enabled in tsconfig (recommended):
+import UnionReplacer from 'union-replacer';
+// without esModuleInterop enabled in tsconfig:
+import * as UnionReplacer from 'union-replacer';
+// regardless esModuleInterop setting:
+import UnionReplacer = require('union-replacer');
+```
+
 ### Synopsis
 
 ```
@@ -47,7 +57,7 @@ newStr = replacer.replace(str)
 
 - v2.0 removes the `addReplacement()` method, see
   [#4](https://github.com/orchitech/union-replacer/issues/4) for details.
-- v2.0 introduces TypeScript type definitions.
+- v2.0 introduces TypeScript type definitions along with precise JSDoc type definitions.
 
 ## Examples
 
