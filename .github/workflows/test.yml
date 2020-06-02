@@ -1,0 +1,16 @@
+name: test matrix
+on: push
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+    steps:
+     - uses: actions/checkout@v1
+     - uses: actions/setup-node@v1
+     - run: npm install
+     - run: npm run build --if-present
+     - run: npm test
+       env:
+         CI: true
