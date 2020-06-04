@@ -1,5 +1,7 @@
 # UnionReplacer
 
+![](https://github.com/orchitech/union-replacer/workflows/test%20matrix/badge.svg)
+
 UnionReplacer provides one-pass global search and replace functionality
 using multiple regular expressions and corresponging replacements.
 Otherwise the behavior matches `String.prototype.replace(regexp, newSubstr|function)`.
