@@ -15,7 +15,8 @@
     "prepare": "npm test",
     "update-types": "jsdoc -d types -t node_modules/tsd-jsdoc/dist -c .jsdoc.conf.js",
     "postupdate-types": "node scripts/tsd-postprocess.js",
-    "docs": "jsdoc -d dist/docs -c .jsdoc.conf.js"
+    "docs": "jsdoc -d dist/docs -c .jsdoc.conf.js",
+    "version": "npm run build && git add types/index.d.ts"
   },
   "repository": {
     "type": "git",
@@ -33,7 +34,6 @@
     "jasmine": "^3.5.0",
     "jasmine-diff": "^0.1.3",
     "jsdoc": "^3.6.4",
-    "np": "^6.2.3",
     "rollup": "^2.11.2",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-node-resolve": "^5.2.0",

@@ -1,4 +1,4 @@
-// Generated type definitions for union-replacer 2.0.0-beta.2
+// Generated type definitions for union-replacer 2.0.0
 // File created by tsd-jsdoc and scripts/tsd-postprocess.js.
 // Do not modify directly.
 
