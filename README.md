@@ -1,6 +1,8 @@
 # UnionReplacer
 
-![](https://github.com/orchitech/union-replacer/workflows/test%20matrix/badge.svg)
+<p>
+  <a href="https://github.com/orchitech/union-replacer/actions?query=workflow%3A%22test-matrix%22"><img alt="test-matrix" src="https://github.com/orchitech/union-replacer/workflows/test-matrix/badge.svg"></a>
+</p>
 
 UnionReplacer provides one-pass global search and replace functionality
 using multiple regular expressions and corresponging replacements.
