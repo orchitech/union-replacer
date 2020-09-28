@@ -48,7 +48,7 @@ class UnionReplacer {
   /**
    * Create a UnionReplacer instance performing the specified replaces.
    *
-   * @param {UnionReplacer.ReplaceTuple[]} replaces - Replaces to be performed
+   * @param {Array<UnionReplacer.ReplaceTuple>} replaces - Replaces to be performed
    *   specified as an array of {@link UnionReplacer.ReplaceTuple} array tuples.
    *   The order of elements in `replaces` is important: if any pattern is matched,
    *   the corresponding amount of input is consumed and subsequent patterns

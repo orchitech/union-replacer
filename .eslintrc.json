@@ -18,6 +18,9 @@
         "T"
       ]
     }],
+    "jsdoc/check-tag-names": ["warn", {
+      "definedTags": ["template"]
+    }],
     "jsdoc/check-examples": 1,
     "jsdoc/check-syntax": 1,
     "jsdoc/match-description": 1,
@@ -38,7 +41,7 @@
   },
   "settings": {
     "jsdoc": {
-      "mode": "closure",
+      "mode": "jsdoc",
       "tagNamePreference": {
         "function": "method"
       }
