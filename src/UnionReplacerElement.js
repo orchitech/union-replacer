@@ -71,7 +71,6 @@ class UnionReplacerElement {
     this.captureCount = captureCount + 1;
   }
 
-  /* eslint-disable no-unused-vars */
   narrowMatch(ctx, totalCaptures) { // eslint-disable-line no-unused-vars
     // Much faster than modifying the match whit `splice()` on V8
     const m0 = ctx.match;

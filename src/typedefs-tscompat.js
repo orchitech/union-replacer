@@ -4,7 +4,7 @@
  * @typedef {Array<string>} RegExpExecArray
  * @property {number} index Index of the match in the string.
  * @property {string} input The string that was matched against.
- * @property {?object<string, string>} groups Named capture groups.
+ * @property {?Object<string, string>} groups Named capture groups.
  */
 
 /**
