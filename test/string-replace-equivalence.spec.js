@@ -43,6 +43,39 @@ describe('UnionReplacer.prototype.replace', () => {
     ['ab', 'x', 'abx', 'xab', 'ab ab x'],
   );
 
+  // A group the pattern declares but the match never entered has an undefined
+  // value, which must interpolate as empty rather than as the string
+  // 'undefined'. Both an optional group and an unused alternative get there.
+  itReplacesLikeStringReplace(
+    'interpolates a group that did not participate as empty',
+    [[/x(?<v>1)?/, '<$<v>>'], [/y(2)?/, '[$1]']],
+    ['x', 'x1', 'y', 'y2', 'xy', 'x1y2', 'yx', 'xxy'],
+  );
+
+  itReplacesLikeStringReplace(
+    'interpolates the unused side of an alternation as empty',
+    [[/(?<a>p)|(?<b>q)/, '<$<a>|$<b>>'], [/(r)|(s)/, '[$1|$2]']],
+    ['p', 'q', 'pq', 'qp', 'r', 's', 'rs', 'pqrs'],
+  );
+
+  // A group that did participate but matched nothing is the empty string, not
+  // undefined. It is indistinguishable from the case above once interpolated,
+  // which is what lets the empty-string fallback stand in for an undefined
+  // check there.
+  itReplacesLikeStringReplace(
+    'keeps a group that matched the empty string empty',
+    [[/(?<v>)e/, '<$<v>>'], [/()f/, '[$1]']],
+    ['e', 'f', 'ef', 'fe'],
+  );
+
+  // Not every unresolved substitution collapses to empty though: these two
+  // stay standing exactly as written, and must not be swept up by the above.
+  itReplacesLikeStringReplace(
+    'leaves an out-of-range or unknown substitution literal',
+    [[/(a)/, '<$1|$2>'], [/(b)/, '[$<nope>]']],
+    ['a', 'b', 'ab', 'ba'],
+  );
+
   // Nesting makes a rule's capture count non-obvious, which is exactly what the
   // slicing depends on getting right.
   itReplacesLikeStringReplace(

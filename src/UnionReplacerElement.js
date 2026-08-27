@@ -4,7 +4,7 @@ const createStringReplacer = (replacementStr) => function stringReplacer(ctx) {
   return replacementStr.replace(/\$([1-9]\d*)|\$([&`'$])|\$<([^\d\s>][^\s>]*)>/g,
     (s, capture, special, namedCapture) => {
       if (capture && +capture < m.length) {
-        return m[+capture];
+        return m[+capture] || '';
       }
       if (special) {
         switch (special) {
@@ -16,7 +16,7 @@ const createStringReplacer = (replacementStr) => function stringReplacer(ctx) {
         }
       }
       if (namedCapture && namedCapture in groups) {
-        return groups[namedCapture];
+        return groups[namedCapture] || '';
       }
       return s;
     });
