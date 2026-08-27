@@ -72,27 +72,6 @@ describe('UnionReplacer.js', () => {
     });
   });
 
-  // Temporarily disabled, pending its own separate work.
-  //
-  // Rules are joined into one alternation, so a capture group name reused by
-  // two of them yields `(?<foo>...)|(?<foo>...)`. That used to be a SyntaxError
-  // in every engine, which is what this asserted. ES2025 made the pattern legal
-  // and V8 has shipped it, so on a current engine the combined regexp now
-  // builds and nothing throws.
-  //
-  // Whether the library should support such rule sets, keep rejecting them, or
-  // reject them only where the engine cannot cope is being decided separately,
-  // along with the tests that will take this spec's place.
-  xit('should fail for rules sharing a named capture group', () => {
-    expect(() => {
-      const replacer = new UnionReplacer([
-        [/(?<foo>foo)/, 'Multiple named capture groups'],
-        [/(?<foo>foo)/, 'with the same name are not allowed'],
-      ]);
-      replacer.replace('');
-    }).toThrowError(SyntaxError);
-  });
-
   it('passes through the input when no replaces are set', () => {
     const replacer = new UnionReplacer([], 'g');
     expect(replacer.replace('foo')).toBe('foo');

@@ -54,9 +54,10 @@ class UnionReplacer {
    *   the corresponding amount of input is consumed and subsequent patterns
    *   will not match on such part of the input.
    * @param {string} [flags=gm] - Flags for replacement, defaults to 'gm'.
-   * @throws {SyntaxError} Invalid regular expression pattern encountered. This
-   *   currently occurs when named capture groups of the same name are supplied
-   *   in different replacement patterns.
+   * @throws {SyntaxError} Invalid regular expression pattern encountered while
+   *   building the combined pattern. Supplying the same capture group name in
+   *   different replacement patterns gets here on engines predating ES2025
+   *   duplicate named capture groups.
    * @throws {SyntaxError} Octal escapes are not allowed in patterns.
    * @see {@link https://github.com/orchitech/union-replacer/blob/master/README.md#alternation-semantics|Alternation semantics}
    * @example replacer = new UnionReplacer([[/\$foo\b/, 'bar'], [/\\(.)/, '$1']]);

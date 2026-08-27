@@ -268,7 +268,8 @@ approach.
   compound regexp.
 - Supports regexp backreferences. Backreferences in the compound regexp are
   renumbered, so that the user does not have to care about it.
-- Supports also ES2018 named capture group. See limitations.
+- Supports also ES2018 named capture groups, including names shared by
+  several replaces. See limitations.
 - You can reuse everything used with `String.prototype.replace()`, namely:
   - String replacements work the very same.
   - Function replacements work the same with just a subtle difference for
@@ -312,8 +313,23 @@ Feel free to benchmark the library and please share the results.
 ### Named capture groups
 
 ES2018 named capture groups work with the following limitations:
-- Replacement functions are always provided with all the named captures, i.e. not limited to the matched rule.
-- Capture group names must be unique amongst all capture rules.
+- Replacement functions are always provided with all the named captures,
+  i.e. not limited to the matched rule.
+- Reusing a capture group name requires an engine implementing ES2025
+  duplicate named capture groups. The name can then be reused within an
+  individual replace, across replaces, or both at once. Before ES2025,
+  reuse within a replace fails with `SyntaxError` even before using
+  `UnionReplacer`; reuse across replaces fails when constructing
+  a `UnionReplacer`.
+
+```js
+// OK in ES2025
+const tagReplacer = new UnionReplacer([
+  [/<(?<tag>[a-z]+)>/, 'open $<tag>, '],
+  [/<\/(?<tag>[a-z]+)>/, 'close $<tag>'],
+]);
+tagReplacer.replace('<em></em>'); // open em, close em
+```
 
 ### Octal escapes
 
